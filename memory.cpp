@@ -2,6 +2,7 @@
 #include <limits>
 #include <stdexcept>
 #include <boost/lexical_cast.hpp>
+#include <boost/numeric/ublas/io.hpp>
 #include "memory.hpp"
 
 using namespace std;
@@ -102,6 +103,9 @@ ublas::matrix<int> Memory::assign(const vector<vector<int> > & tasks, int step) 
   ublas::matrix<int> assignments;
   if (step != 0) {
     assignments = assign(tasks, step - 1); // assignments.shape = (_size, step - 1)
+#ifndef NDEBUG
+    cout<<assignments<<endl;
+#endif
   } else {
     assignments = ublas::zero_matrix<int>(_size, 0);
   }
