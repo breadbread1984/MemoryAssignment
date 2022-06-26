@@ -127,12 +127,12 @@ ublas::matrix<int> Memory::assign(const vector<vector<int> > & tasks, int step) 
     }
     // checkout collision
     bool collided = false;
-    for (int i = 0 ; i < task_num ; i++) {
+    for (int t = 0 ; t < positions.size() ; t++) {
       int j;
       for (j = assignments.size2() - 1 ; j >= 0 ; j--) {
-	if (assignments(i,j)) break;
+	if (assignments(positions[t],j)) break;
       }
-      if (!(j < 0 || assignments(i,j) <= assignments.size2() - j)) {
+      if (!(j < 0 || assignments(positions[t],j) <= assignments.size2() - j)) {
 	// current task is collided
 	collided = true;
 	break;
