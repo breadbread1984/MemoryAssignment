@@ -1,4 +1,4 @@
-CXXFLAGS=-I. -g2
+CXXFLAGS=-I. -O2 -DNDEBUG
 LIBS=
 OBJS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
