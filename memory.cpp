@@ -105,9 +105,9 @@ ublas::matrix<int> Memory::assign(const vector<vector<int> > & tasks, int step) 
   } else {
     assignments = ublas::zero_matrix<int>(_size, 0);
   }
-  ublas::matrix<int> new_assignments = ublas::zero_matrix<int>(_size, step);
-  ublas::matrix_range<ublas::matrix<int> > left(new_assignments, ublas::range(0, _size), ublas::range(0, step - 1));
-  ublas::matrix_range<ublas::matrix<int> > right(new_assignments, ublas::range(0, _size), ublas::range(step - 1, step));
+  ublas::matrix<int> new_assignments = ublas::zero_matrix<int>(_size, step + 1);
+  ublas::matrix_range<ublas::matrix<int> > left(new_assignments, ublas::range(0, _size), ublas::range(0, step));
+  ublas::matrix_range<ublas::matrix<int> > right(new_assignments, ublas::range(0, _size), ublas::range(step, step + 1));
   left = assignments;
   int lower = 0, higher = 0;
   tie(lower, higher) = address_range(left);
