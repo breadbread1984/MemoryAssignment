@@ -30,11 +30,12 @@ public:
 
 class Memory {
   int _size;
+protected:
+  tuple<int,int> address_range(ublas::matrix<int> assignments);
+  tuple<int,int> address_range(vector<int> positions);
 public:
   Memory(int size);
   virtual ~Memory();
-  tuple<int,int> address_range(ublas::matrix<int> assignments);
-  tuple<int,int> address_range(vector<int> positions);
   ublas::matrix<int> assign(const vector<vector<int> > & tasks, int step = -1);
 };
 
