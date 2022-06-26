@@ -41,6 +41,7 @@ class Assignments {
   vector<Assignment> assignments;
 public:
   Assignments();
+  Assignments(const Assignments& a);
   virtual ~ Assignments();
   void append(Assignment assignment);
   tuple<int,int> address_range();

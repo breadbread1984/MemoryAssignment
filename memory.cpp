@@ -89,6 +89,9 @@ tuple<int,int> Assignment::address_range() {
 Assignments::Assignments() {
 }
 
+Assignments::Assignments(const Assignments& a): assignments(a.assignments) {
+}
+
 Assignments::~Assignments() {
 }
 
@@ -138,21 +141,15 @@ ublas::matrix<int> Memory::assign(const vector<vector<tuple<int,int> > > & tasks
     step = tasks.size() - 1;
   }
   int task_num = tasks[step].size();
-  ublas::matrix<int> assignments;
+  Assignment assignments;
   if (step != 0) {
     assignments = assign(tasks, step - 1); // assignments.shape = (_size, step - 1)
 #ifndef NDEBUG
     cout<<assignments<<endl;
 #endif
-  } else {
-    assignments = ublas::zero_matrix<int>(_size, 0);
   }
-  ublas::matrix<int> new_assignments = ublas::zero_matrix<int>(_size, step + 1);
-  ublas::matrix_range<ublas::matrix<int> > left(new_assignments, ublas::range(0, _size), ublas::range(0, step));
-  ublas::matrix_range<ublas::matrix<int> > right(new_assignments, ublas::range(0, _size), ublas::range(step, step + 1));
-  left = assignments;
   int lower = 0, higher = 0;
-  tie(lower, higher) = address_range(left);
+  tie(lower, higher) = assignments.address_range();
   int minimum_higher = numeric_limits<int>::max();
   for (auto itr = Counter(_size, task_num) ; (*itr).size() != 0 ; itr++) {
     // for every candidate assignment
@@ -168,7 +165,7 @@ ublas::matrix<int> Memory::assign(const vector<vector<tuple<int,int> > > & tasks
     for (int t = 0 ; t < positions.size() ; t++) {
       int j;
       for (j = assignments.size2() - 1 ; j >= 0 ; j--) {
-	if (assignments(positions[t],j)) break;
+	      if (assignments(positions[t],j)) break;
       }
       if (!(j < 0 || assignments(positions[t],j) <= assignments.size2() - j)) {
 	// current task is collided
