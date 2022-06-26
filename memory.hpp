@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include <iterator>
 #include <tuple>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -28,15 +29,32 @@ public:
   vector<int> & operator*();
 };
 
+class Assignment {
+  map<int,tuple<int,int> > assignment; // address->(size, time)
+public:
+  Assignment(vector<tuple<int,int> > tasks, vector<int> positions);
+  virtual ~Assignment();
+  tuple<int,int> address_range();
+};
+
+class Assignments {
+  vector<Assignment> assignments;
+public:
+  Assignments();
+  virtual ~ Assignments();
+  void append(Assignment assignment);
+  tuple<int,int> address_range();
+};
+
 class Memory {
   int _size;
 protected:
-  tuple<int,int> address_range(ublas::matrix<int> assignments);
-  tuple<int,int> address_range(vector<int> positions);
+  tuple<int,int> address_range(Assignments& assignments);
+  tuple<int,int> address_range(Assignment& assignment);
 public:
   Memory(int size);
   virtual ~Memory();
-  ublas::matrix<int> assign(const vector<vector<int> > & tasks, int step = -1);
+  ublas::matrix<int> assign(const vector<vector<tuple<int,int> > > & tasks, int step = -1);
 };
 
 #endif

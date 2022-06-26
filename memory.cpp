@@ -1,6 +1,7 @@
 #include <set>
 #include <limits>
 #include <stdexcept>
+#include <algorithm>
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include "memory.hpp"
@@ -65,6 +66,53 @@ bool Counter::operator!=(const Counter& rhs) const {
   return !((*this)==rhs);
 }
 
+Assignment::Assignment(vector<tuple<int,int> > tasks, vector<int> positions) {
+  assert(tasks.size() == positions.size());
+  for (int i = 0 ; i < tasks.size() ; i++) {
+    assignment[positions[i]] = tasks[i];
+  }
+}
+
+Assignment::~Assignment() {
+}
+
+tuple<int,int> Assignment::address_range() {
+  if (0 == assignment.size()) {
+    return make_tuple(0,0);
+  } else {
+    lower = assignment.begin()->first;
+    higher = assignment.rbegin()->first + assignment.rbegin()->second.first; //start_address + size
+    return make_tuple(lower, higher);
+  }
+}
+
+Assignments::Assignments() {
+}
+
+Assignments::~Assignments() {
+}
+
+void Assignments::append(Assignment assignment) {
+  assignments.push_back(assignment);
+}
+
+tuple<int,int> Assignments::address_range() {
+  vector<int> lowers, highers;
+  for (auto & assignment : assignments) {
+    int lower, higher;
+    tie(lower, higher) = assignment.address_range();
+    lowers.push_back(lower);
+    highers.push_back(higher);
+  }
+  if (0 == assignments.size()) {
+    return make_tuple(0,0);
+  } else {
+    int lower = *min_element(lowers.begin(), lowers.end());
+    int higher = *max_element(highers.begin(), highers.end());
+    return make_tuple(lower, higher);
+  }
+}
+
 vector<int> & Counter::operator*() {
   return _counter;
 }
@@ -75,25 +123,15 @@ Memory::Memory(int size): _size(size) {
 Memory::~Memory() {
 }
 
-tuple<int,int> Memory::address_range(ublas::matrix<int> assignments) {
-  ublas::scalar_matrix<int> ones(assignments.size2(), 1);
-  ublas::matrix<int> row_sum = prod(assignments, ones);
-  int lower = 0, higher = 0;
-  for (lower = 0 ; lower < row_sum.size1() && row_sum(lower, 0) == 0 ; lower++);
-  lower = (lower == row_sum.size1())?-1:lower;
-  for (higher = row_sum.size1() - 1 ; higher >= 0 && row_sum(higher, 0) == 0 ; higher--);
-  return make_tuple(lower, higher);
+tuple<int,int> Memory::address_range(Assignments& assignments) {
+  return assignments.address_range();
 }
 
-tuple<int,int> Memory::address_range(vector<int> positions) {
-  int lower = 0, higher = 0;
-  for (lower = 0 ; lower < positions.size() && positions[lower] == 0 ; lower++);
-  lower = (lower == positions.size())?-1:lower;
-  for (higher = positions.size() - 1 ; higher >= 0 && positions[higher] == 0 ; higher--);
-  return make_tuple(lower, higher);
+tuple<int,int> Memory::address_range(Assignment& assignment) {
+  return assignment.address_range();
 }
 
-ublas::matrix<int> Memory::assign(const vector<vector<int> > & tasks, int step) {
+ublas::matrix<int> Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int step) {
   assert(tasks.size());
   if (step == -1) {
     // default value means recursive from the last step
