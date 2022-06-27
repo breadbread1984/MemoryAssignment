@@ -36,7 +36,7 @@ public:
   Assignment(int size);
   Assignment& operator=(const Assignment& a);
   virtual ~Assignment();
-  bool append(int address, int size, int time);
+  bool append(int address, int size, int elapse);
   tuple<int,int> address_range();
   map<int,tuple<int,int> > & get();
 };
