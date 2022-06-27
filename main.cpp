@@ -27,6 +27,7 @@ int main() {
   boost::random::uniform_int_distribution<> dist(0, 255);
   Mat img = Mat::zeros(8 * 30, (6 + 4) * 40, CV_8UC3);
   auto & detail1 = assignments.get();
+  Scalar border(128,128,128);
   for (int t = 0 ; t < detail1.size() ; t++) {
     auto & detail2 = detail1[t].get();
     Scalar color(dist(rng), dist(rng), dist(rng));
@@ -36,6 +37,7 @@ int main() {
       int h = get<0>(itr->second) * 30;
       int w = get<1>(itr->second) * 40;
       rectangle(img, Point(x,y), Point(x + w, y + h), color, -1);
+      rectangle(img, Point(x,y), Point(x + w, y + h), border, 1);
       cout<<x<<","<<y<<","<<x+w<<","<<y+h<<endl;
     }
   }
