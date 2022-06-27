@@ -225,11 +225,16 @@ Assignments Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int s
     // 1) check whether tasks of current timestamp collide with each other
     vector<int> positions = *itr;
     Assignment assignment(_size);
+    bool collide = false;
     for (int t = 0 ; t < tasks[step].size() ; t++) {
       if (false == assignment.append(positions[t], std::get<0>(tasks[step][t]), std::get<1>(tasks[step][t]))) {
         // collision of any task will skip current candidate assignment
-        continue;
+        collide = true;
+        break;
       }
+    }
+    if (collide) {
+      continue;
     }
     // 2) check whether tasks of current timestamp collide with tasks of past timestamps
     Assignments new_assignments(assignments);
