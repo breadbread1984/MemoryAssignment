@@ -8,7 +8,6 @@
 #include <tuple>
 
 using namespace std;
-namespace ublas = boost::numeric::ublas;
 
 class Counter: public iterator<forward_iterator_tag, vector<int>> {
   int _base, _digits;
