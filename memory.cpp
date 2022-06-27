@@ -233,7 +233,7 @@ Assignments Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int s
     }
     // 2) check whether tasks of current timestamp collide with tasks of past timestamps
     Assignments new_assignments(assignments);
-    if (false == assignments.append(assignment)) {
+    if (false == new_assignments.append(assignment)) {
       continue;
     }
     // 3) select assignments with the minimum higher address
