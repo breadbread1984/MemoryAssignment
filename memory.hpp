@@ -30,32 +30,37 @@ public:
 };
 
 class Assignment {
+  int _size;
   map<int,tuple<int,int> > assignment; // address->(size, time)
 public:
-  Assignment(vector<tuple<int,int> > tasks, vector<int> positions);
+  Assignment(int size);
+  Assignment& operator=(const Assignment& a);
   virtual ~Assignment();
+  bool append(int address, int size, int time);
   tuple<int,int> address_range();
+  map<int,tuple<int,int> > & get();
 };
 
 class Assignments {
   vector<Assignment> assignments;
+protected:
+  bool collide(int size, int elapse, int position, int time);
 public:
   Assignments();
   Assignments(const Assignments& a);
-  virtual ~ Assignments();
-  void append(Assignment assignment);
+  Assignments& operator=(const Assignments& a);
+  virtual ~Assignments();
+  bool append(Assignment assignment);
   tuple<int,int> address_range();
+  vector<Assignment> & get();
 };
 
 class Memory {
   int _size;
-protected:
-  tuple<int,int> address_range(Assignments& assignments);
-  tuple<int,int> address_range(Assignment& assignment);
 public:
   Memory(int size);
   virtual ~Memory();
-  ublas::matrix<int> assign(const vector<vector<tuple<int,int> > > & tasks, int step = -1);
+  Assignments assign(const vector<vector<tuple<int,int> > > & tasks, int step = -1);
 };
 
 #endif

@@ -1,9 +1,7 @@
-#include <set>
 #include <limits>
 #include <stdexcept>
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include "memory.hpp"
 
 using namespace std;
@@ -66,14 +64,42 @@ bool Counter::operator!=(const Counter& rhs) const {
   return !((*this)==rhs);
 }
 
-Assignment::Assignment(vector<tuple<int,int> > tasks, vector<int> positions) {
-  assert(tasks.size() == positions.size());
-  for (int i = 0 ; i < tasks.size() ; i++) {
-    assignment[positions[i]] = tasks[i];
-  }
+vector<int> & Counter::operator*() {
+  return _counter;
+}
+
+Assignment::Assignment(int size): _size(size) {
+}
+
+Assignment& Assignment::operator=(const Assignment& a) {
+  _size = a._size;
+  assignment = a.assignment;
+  return *this;
 }
 
 Assignment::~Assignment() {
+}
+
+bool Assignment::append(int address, int size, int time) {
+  // detect whether the task is over the address range
+  if (address + size > _size) {
+    return false;
+  }
+  // detect whether the task is overlap with other tasks
+  for (map<int, tuple<int,int> >::iterator itr = assignment.begin() ; itr != assignment.end() ; itr++) {
+    int left_y1 = itr->first;
+    int left_y2 = itr->first + get<0>(itr->second);
+    int right_y1 = address;
+    int right_y2 = address + size;
+    int intersec_y1 = max(left_y1, right_y1);
+    int intersec_y2 = min(left_y2, right_y2);
+    int intersec_h = max(intersec_y2 - intersec_y1, 0);
+    if (intersec_h) {
+      return false;
+    }
+  }
+  assignment[address] = make_tuple(size, time);
+  return true;
 }
 
 tuple<int,int> Assignment::address_range() {
@@ -81,22 +107,81 @@ tuple<int,int> Assignment::address_range() {
     return make_tuple(0,0);
   } else {
     lower = assignment.begin()->first;
-    higher = assignment.rbegin()->first + assignment.rbegin()->second.first; //start_address + size
+    higher = assignment.rbegin()->first + get<0>(assignment.rbegin()->second); //start_address + size
     return make_tuple(lower, higher);
   }
 }
 
-Assignments::Assignments() {
+map<int,tuple<int,int> > & Assignment::get() {
+  return assignment;
+}
+
+Assignments::Assignments(): {
 }
 
 Assignments::Assignments(const Assignments& a): assignments(a.assignments) {
 }
 
+Assignments& Assignments::operator=(const Assignments& a) {
+  assignments = a.assignments;
+  return *this;
+}
+
 Assignments::~Assignments() {
 }
 
-void Assignments::append(Assignment assignment) {
+vector<Assignment> & Assignments::get() {
+  return assignments;
+}
+
+bool Assignments::append(Assignment assignment) {
+  map<int,tuple<int,int> > & detail = assignment.get();
+  int time = assignments.size();
+  for (map<int,tuple<int,int> >::iterator itr = detail.begin() ; itr != detail.end() ; itr++) {
+    int position = itr->first;
+    int size = get<0>(itr->second);
+    int elapse = get<1>(itr->second);
+    if (collide(size, elapse, position, time)) {
+      return false;
+    }
+  }
   assignments.push_back(assignment);
+  return true;
+}
+
+bool Assignments::collide(int size, int elapse, int position, int time) {
+  // FIXME: use better collision detection algorithm
+  for (int t = 0 ; t < assignments.size() ; t++) {
+    // for every timestamp
+    auto & detail = assignments[t].get();
+    for (map<int,tuple<int,int> >::iterator itr = detail.begin() ; itr != detail.end() ; itr++) {
+      // for every tasks in this timestamp
+      // detect collision with the given assignment position
+      int left_x1 = t;
+      int left_y1 = itr->first;
+      int left_h = get<0>(itr->second);
+      int left_w = get<1>(itr->second);
+      int left_x2 = left_x1 + left_w;
+      int left_y2 = left_y1 + left_h;
+      int right_x1 = time;
+      int right_y1 = position;
+      int right_h = size;
+      int right_w = elapse;
+      int right_x2 = right_x1 + right_w;
+      int right_y2 = right_y1 + right_h;
+      int intersec_x1 = max(left_x1, right_x1);
+      int intersec_x2 = min(left_x2, right_x2);
+      int intersec_y1 = max(left_y1, right_y1);
+      int intersec_y2 = min(left_y2, right_y2);
+      int w = max(intersec_x2 - intersec_x1, 0);
+      int h = max(intersec_y2 - intersec_y1, 0);
+      int intersec_area = h * w;
+      if (intersec_area) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 tuple<int,int> Assignments::address_range() {
@@ -116,8 +201,8 @@ tuple<int,int> Assignments::address_range() {
   }
 }
 
-vector<int> & Counter::operator*() {
-  return _counter;
+vector<Assignment> & Assignments::get() {
+  return assignments;
 }
 
 Memory::Memory(int size): _size(size) {
@@ -126,15 +211,7 @@ Memory::Memory(int size): _size(size) {
 Memory::~Memory() {
 }
 
-tuple<int,int> Memory::address_range(Assignments& assignments) {
-  return assignments.address_range();
-}
-
-tuple<int,int> Memory::address_range(Assignment& assignment) {
-  return assignment.address_range();
-}
-
-ublas::matrix<int> Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int step) {
+Assignments Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int step) {
   assert(tasks.size());
   if (step == -1) {
     // default value means recursive from the last step
@@ -144,51 +221,46 @@ ublas::matrix<int> Memory::assign(const vector<vector<tuple<int,int> > > & tasks
   Assignment assignments;
   if (step != 0) {
     assignments = assign(tasks, step - 1); // assignments.shape = (_size, step - 1)
-#ifndef NDEBUG
-    cout<<assignments<<endl;
-#endif
   }
+#ifndef NDEBUG
+  vector<Assignment> & time_steps = assignments.get();
+  for (int t = 0 ; t < time_steps.size() ; t++) {
+    map<int,tuple<int,int> > & a = time_steps[t].get();
+    for (int i = 0 ; i < _size ; i++) {
+      
+    }
+  }
+#endif
   int lower = 0, higher = 0;
   tie(lower, higher) = assignments.address_range();
   int minimum_higher = numeric_limits<int>::max();
+  Assignments best_assignments;
   for (auto itr = Counter(_size, task_num) ; (*itr).size() != 0 ; itr++) {
     // for every candidate assignment
+    // 1) check whether tasks of current timestamp collide with each other
     vector<int> positions = *itr;
-    set<int> pos_set(positions.begin(), positions.end());
-    if (pos_set.size() != task_num) {
-      // if any two task are assigned to the same memory position
-      // skip current assignment
+    Assignment assignment(_size);
+    for (int t = 0 ; t < tasks[step].size() ; t++) {
+      if (false == assignment.append(get<0>(tasks[step][t]), get<1>(tasks[step][t]), positions[t], step)) {
+        // collision of any task will skip current candidate assignment
+        continue;
+      }
+    }
+    // 2) check whether tasks of current timestamp collide with tasks of past timestamps
+    Assignments new_assignments(assignments);
+    if (false == assignments.append(assignment)) {
       continue;
     }
-    // checkout collision
-    bool collided = false;
-    for (int t = 0 ; t < positions.size() ; t++) {
-      int j;
-      for (j = assignments.size2() - 1 ; j >= 0 ; j--) {
-	      if (assignments(positions[t],j)) break;
-      }
-      if (!(j < 0 || assignments(positions[t],j) <= assignments.size2() - j)) {
-	// current task is collided
-	collided = true;
-	break;
-      }
-    }
-    if (false == collided) {
-      // if all tasks are not collided
-      int new_lower = 0, new_higher = 0;
-      tie(new_lower, new_higher) = address_range(positions);
-      if (max(new_higher, higher) < minimum_higher) {
-        minimum_higher = max(new_higher, higher);
-        right = ublas::zero_matrix<int>(_size, 1);
-        for (int t = 0 ; t < positions.size() ; t++) {
-          right(positions[t], 0) = tasks[step][t];
-        }
-      }
+    // 3) select assignments with the minimum higher address
+    int new_lower = 0, new_higher = 0;
+    tie(new_lower, new_higher) = new_assignments.address_range();
+    if (new_higher < minimum_higher) {
+      best_assignments = new_assignments;
+      minimum_higher = new_higher
     }
   }
   if (minimum_higher == numeric_limits<int>::max()) {
     throw runtime_error("no candidate solution available at step " + lexical_cast<string>(step));
   }
-  return new_assignments;
+  return best_assignments;
 }
-
