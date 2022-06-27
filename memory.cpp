@@ -88,7 +88,7 @@ bool Assignment::append(int address, int size, int time) {
   // detect whether the task is overlap with other tasks
   for (map<int, tuple<int,int> >::iterator itr = assignment.begin() ; itr != assignment.end() ; itr++) {
     int left_y1 = itr->first;
-    int left_y2 = itr->first + get<0>(itr->second);
+    int left_y2 = itr->first + std::get<0>(itr->second);
     int right_y1 = address;
     int right_y2 = address + size;
     int intersec_y1 = max(left_y1, right_y1);
@@ -106,8 +106,8 @@ tuple<int,int> Assignment::address_range() {
   if (0 == assignment.size()) {
     return make_tuple(0,0);
   } else {
-    lower = assignment.begin()->first;
-    higher = assignment.rbegin()->first + get<0>(assignment.rbegin()->second); //start_address + size
+    int lower = assignment.begin()->first;
+    int higher = assignment.rbegin()->first + std::get<0>(assignment.rbegin()->second); //start_address + size
     return make_tuple(lower, higher);
   }
 }
@@ -116,7 +116,7 @@ map<int,tuple<int,int> > & Assignment::get() {
   return assignment;
 }
 
-Assignments::Assignments(): {
+Assignments::Assignments() {
 }
 
 Assignments::Assignments(const Assignments& a): assignments(a.assignments) {
@@ -130,17 +130,13 @@ Assignments& Assignments::operator=(const Assignments& a) {
 Assignments::~Assignments() {
 }
 
-vector<Assignment> & Assignments::get() {
-  return assignments;
-}
-
 bool Assignments::append(Assignment assignment) {
   map<int,tuple<int,int> > & detail = assignment.get();
   int time = assignments.size();
   for (map<int,tuple<int,int> >::iterator itr = detail.begin() ; itr != detail.end() ; itr++) {
     int position = itr->first;
-    int size = get<0>(itr->second);
-    int elapse = get<1>(itr->second);
+    int size = std::get<0>(itr->second);
+    int elapse = std::get<1>(itr->second);
     if (collide(size, elapse, position, time)) {
       return false;
     }
@@ -159,8 +155,8 @@ bool Assignments::collide(int size, int elapse, int position, int time) {
       // detect collision with the given assignment position
       int left_x1 = t;
       int left_y1 = itr->first;
-      int left_h = get<0>(itr->second);
-      int left_w = get<1>(itr->second);
+      int left_h = std::get<0>(itr->second);
+      int left_w = std::get<1>(itr->second);
       int left_x2 = left_x1 + left_w;
       int left_y2 = left_y1 + left_h;
       int right_x1 = time;
@@ -218,7 +214,7 @@ Assignments Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int s
     step = tasks.size() - 1;
   }
   int task_num = tasks[step].size();
-  Assignment assignments;
+  Assignments assignments;
   if (step != 0) {
     assignments = assign(tasks, step - 1); // assignments.shape = (_size, step - 1)
   }
@@ -241,7 +237,7 @@ Assignments Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int s
     vector<int> positions = *itr;
     Assignment assignment(_size);
     for (int t = 0 ; t < tasks[step].size() ; t++) {
-      if (false == assignment.append(get<0>(tasks[step][t]), get<1>(tasks[step][t]), positions[t], step)) {
+      if (false == assignment.append(std::get<0>(tasks[step][t]), std::get<1>(tasks[step][t]), positions[t], step)) {
         // collision of any task will skip current candidate assignment
         continue;
       }
