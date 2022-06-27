@@ -6,9 +6,6 @@
 #include <map>
 #include <iterator>
 #include <tuple>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 using namespace std;
 namespace ublas = boost::numeric::ublas;
