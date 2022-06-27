@@ -80,7 +80,7 @@ Assignment& Assignment::operator=(const Assignment& a) {
 Assignment::~Assignment() {
 }
 
-bool Assignment::append(int address, int size, int time) {
+bool Assignment::append(int address, int size, int elapse) {
   // detect whether the task is over the address range
   if (address + size > _size) {
     return false;
@@ -98,7 +98,7 @@ bool Assignment::append(int address, int size, int time) {
       return false;
     }
   }
-  assignment[address] = make_tuple(size, time);
+  assignment[address] = make_tuple(size, elapse);
   return true;
 }
 
@@ -237,7 +237,7 @@ Assignments Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int s
     vector<int> positions = *itr;
     Assignment assignment(_size);
     for (int t = 0 ; t < tasks[step].size() ; t++) {
-      if (false == assignment.append(std::get<0>(tasks[step][t]), std::get<1>(tasks[step][t]), positions[t], step)) {
+      if (false == assignment.append(positions[t], std::get<0>(tasks[step][t]), std::get<1>(tasks[step][t]))) {
         // collision of any task will skip current candidate assignment
         continue;
       }
@@ -252,7 +252,7 @@ Assignments Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int s
     tie(new_lower, new_higher) = new_assignments.address_range();
     if (new_higher < minimum_higher) {
       best_assignments = new_assignments;
-      minimum_higher = new_higher
+      minimum_higher = new_higher;
     }
   }
   if (minimum_higher == numeric_limits<int>::max()) {
