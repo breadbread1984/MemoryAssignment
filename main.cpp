@@ -11,8 +11,10 @@ using namespace std;
 using namespace boost::random;
 using namespace cv;
 
+int memory_slots = 8;
+
 int main() {
-  Memory memory(8);
+  Memory memory(memory_slots);
   vector<vector<tuple<int,int> > > tasks{
     {make_tuple(1,2),make_tuple(1,1),make_tuple(1,3)},
     {make_tuple(2,1),make_tuple(1,2),make_tuple(1,5)},
@@ -25,7 +27,7 @@ int main() {
   // visualization
   random_device rng;
   boost::random::uniform_int_distribution<> dist(0, 255);
-  Mat img = Mat::zeros(8 * 30, (6 + 4) * 40, CV_8UC3);
+  Mat img = Mat::zeros(memory_slots * 30, (tasks.size() + 4) * 40, CV_8UC3);
   auto & detail1 = assignments.get();
   Scalar border(128,128,128);
   for (int t = 0 ; t < detail1.size() ; t++) {
