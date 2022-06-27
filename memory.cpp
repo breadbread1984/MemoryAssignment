@@ -218,17 +218,6 @@ Assignments Memory::assign(const vector<vector<tuple<int,int> > > & tasks, int s
   if (step != 0) {
     assignments = assign(tasks, step - 1); // assignments.shape = (_size, step - 1)
   }
-#ifndef NDEBUG
-  vector<Assignment> & time_steps = assignments.get();
-  for (int t = 0 ; t < time_steps.size() ; t++) {
-    map<int,tuple<int,int> > & a = time_steps[t].get();
-    for (int i = 0 ; i < _size ; i++) {
-      
-    }
-  }
-#endif
-  int lower = 0, higher = 0;
-  tie(lower, higher) = assignments.address_range();
   int minimum_higher = numeric_limits<int>::max();
   Assignments best_assignments;
   for (auto itr = Counter(_size, task_num) ; (*itr).size() != 0 ; itr++) {
