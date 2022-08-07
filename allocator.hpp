@@ -43,10 +43,14 @@ using Assignment = multi_index_container<
 >;
 
 class Allocator {
-  using Queue = queue<Assignment>;
+  using task_id = std::tuple<int,int>; // time_index, task_index
+  using remaining_tasks = vector<task_id>;
+  using solution_candidate = std::tuple<Assignment, remaining_tasks>;
+  using Queue = queue<solution_candidate>;
 protected:
+  inline const Task & get_task(const map<int, vector<Task> > & tasks, int time_index, int task_index);
   int cost(const Assignment & assignment, const map<int, vector<Task> > & tasks);
-  std::tuple<int, int> bound(const Assignment & assignment, const Task & task);
+  Disposition assign(const Assignment & assignment, const map<int, vector<Task> > & tasks, task_id tid);
 public:
   Allocator();
   virtual ~Allocator();
