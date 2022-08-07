@@ -22,7 +22,6 @@ struct Disposition {
   int time_index; // index of time
   int task_index; // index of task
   int address;
-  int time;
 };
 
 struct IndexedByAddress {};
@@ -37,7 +36,7 @@ using Assignment = multi_index_container<
     >,
     ordered_non_unique<
       tag<IndexedByTime>,
-      member<Disposition, int, &Disposition::time>
+      member<Disposition, int, &Disposition::time_index>
     >
   >
 >;
