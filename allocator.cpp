@@ -45,17 +45,28 @@ int Allocator::cost(const Assignment & assignment, const map<int, vector<Task> >
 Disposition Allocator::assign(const Assignment & assignment, const map<int, vector<Task> > & tasks, task_id tid) {
   // place current task according to existing assigned tasks
   const Task & task = get_task(tasks, get<0>(tid), get<1>(tid));
-  // get temporal related assigned tasks
+  // get max address of temporal intersected tasks
+  int max_value = 0;
   for (auto itr = assignment.begin() ; itr != assignment.end() ; itr++) {
-    const Disposition & disposition = *itr;
-    const Task & task1 = get_task(tasks, disposition.time_index, disposition.task_index);
-    int left1 = disposition.time_index;
-    int right1 = disposition.time_index + task1.elapse;
+    const Disposition & disposition1 = *itr;
+    const Task & task1 = get_task(tasks, disposition1.time_index, disposition1.task_index);
+    int left1 = disposition1.time_index;
+    int right1 = disposition1.time_index + task1.elapse;
     const Task & task2 = get_task(tasks, get<0>(tid), get<1>(tid));
     int left2 = get<0>(tid);
     int right2 = get<0>(tid) + task2.elapse;
     int intersect = temporal_intersect(left1, right1, left2, right2);
+    if (intersect) {
+      int down1 = disposition1.address;
+      int up1 = disposition1.address + task1.size;
+      if (up1 > max_value) {
+        max_value = up1;
+      }
+    }
   }
+  // make assignment
+  Disposition disposition2{get<0>(tid), get<1>(tid), max_value};
+  return disposition2;
 }
 
 Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
