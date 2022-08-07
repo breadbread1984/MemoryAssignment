@@ -23,6 +23,12 @@ const Task & Allocator::get_task(const map<int, vector<Task> > & tasks, int time
   return tasks_of_this_time[task_index];
 }
 
+int Allocator::temporal_intersect(int left1, int right1, int left2, int right2) {
+  int left = max(left1, left2);
+  int right = min(right1, right2);
+  return max(0, right - left);
+}
+
 int Allocator::cost(const Assignment & assignment, const map<int, vector<Task> > & tasks) {
   int min_value = numeric_limits<int>::max();
   for (auto itr = assignment.begin() ; itr != assignment.end() ; itr++) {
@@ -42,12 +48,13 @@ Disposition Allocator::assign(const Assignment & assignment, const map<int, vect
   // get temporal related assigned tasks
   for (auto itr = assignment.begin() ; itr != assignment.end() ; itr++) {
     const Disposition & disposition = *itr;
-    const Task & task = get_task(tasks, disposition.time_index, disposition.task_index);
-    int down1 = disposition.address;
-    int up1 = disposition.address + task.size;
+    const Task & task1 = get_task(tasks, disposition.time_index, disposition.task_index);
     int left1 = disposition.time_index;
-    int right1 = disposition.time_index + task.elapse;
-    
+    int right1 = disposition.time_index + task1.elapse;
+    const Task & task2 = get_task(tasks, get<0>(tid), get<1>(tid));
+    int left2 = get<0>(tid);
+    int right2 = get<0>(tid) + task2.elapse;
+    int intersect = temporal_intersect(left1, right1, left2, right2);
   }
 }
 
