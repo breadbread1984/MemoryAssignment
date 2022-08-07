@@ -60,7 +60,7 @@ std::tuple<int,int> Allocator::bound(const Assignment & assignment, const map<in
   }
   // 2) find the max temporal step the tasks last
   int max_temporal = 0;
-  for (map<int,vector<Task> >::const_iterator itr = tasks.begin() ; itr != tasks.end() ; itr++) {
+  for (map<int,vector<Task> >::const_iterator itr = tasks.cbegin() ; itr != tasks.cend() ; itr++) {
     for (int i = 0 ; i < itr->second.size() ; i++) {
       if (max_temporal < itr->first + itr->second[i].elapse) {
         max_temporal = itr->first + itr->second[i].elapse;
@@ -109,7 +109,7 @@ Disposition Allocator::assign(const Assignment & assignment, const map<int, vect
 Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
   // 1) make the root node
   remaining_tasks tasks_to_assign;
-  for (const::map<int, vector<Task> >::const_iterator itr = tasks.begin() ; itr != tasks.end() ; itr++) {
+  for (const::map<int, vector<Task> >::const_iterator itr = tasks.cbegin() ; itr != tasks.cend() ; itr++) {
     for (int i = 0; i < itr->second.size() ; i++) {
       tasks_to_assign.push_back(make_tuple(itr->first, i));
     }
@@ -118,7 +118,7 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
     throw logic_error("at leat one task in the tasks container!");
   }
   Queue solutions;
-  solutions.push(make_tuple(Assignment, tasks_to_assign));
+  solutions.push(make_tuple(Assignment(), tasks_to_assign));
   // 2) start searching
   while(solutions.size()) {
     // TODO:
