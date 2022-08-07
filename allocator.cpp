@@ -30,16 +30,16 @@ int Allocator::temporal_intersect(int left1, int right1, int left2, int right2) 
 }
 
 int Allocator::cost(const Assignment & assignment, const map<int, vector<Task> > & tasks) {
-  int min_value = numeric_limits<int>::max();
+  int max_value = 0;
   for (auto itr = assignment.begin() ; itr != assignment.end() ; itr++) {
     const Disposition & disposition = *itr;
     const Task & task = get_task(tasks, disposition.time_index, disposition.task_index);
     int address = disposition.address;
-    if (address + task.size < min_value) {
-      min_value = address + task.size;
+    if (address + task.size > max_value) {
+      max_value = address + task.size;
     }
   }
-  return min_value;
+  return max_value;
 }
 
 Disposition Allocator::assign(const Assignment & assignment, const map<int, vector<Task> > & tasks, task_id tid) {
