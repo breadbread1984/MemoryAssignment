@@ -1,6 +1,7 @@
 #ifndef ALLOCATOR_HPP
 #define ALLOCATOR_HPP
 
+#include <map>
 #include <vector>
 #include <tuple>
 #include <queue>
@@ -18,7 +19,8 @@ struct Task {
 };
 
 struct Disposition {
-  int index; // index to task
+  int time_index; // index of time
+  int task_index; // index of task
   int address;
   int time;
 };
@@ -43,12 +45,12 @@ using Assignment = multi_index_container<
 class Allocator {
   using Queue = queue<Assignment>;
 protected:
-  int cost(const Assignment & assignment, const vector<Task> & tasks);
+  int cost(const Assignment & assignment, const map<int, vector<Task> > & tasks);
   std::tuple<int, int> bound(const Assignment & assignment, const Task & task);
 public:
   Allocator();
   virtual ~Allocator();
-  Assignment solve(const vector<Task> & tasks);
+  Assignment solve(const map<int, vector<Task> > & tasks);
 };
 
 #endif
