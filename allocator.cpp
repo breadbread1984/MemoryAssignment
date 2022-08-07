@@ -42,6 +42,43 @@ int Allocator::cost(const Assignment & assignment, const map<int, vector<Task> >
   return max_value;
 }
 
+std::tuple<int,int> Allocator::bound(const Assignment & assignment, const map<int, vector<Task> > & tasks) {
+  // 1) find the max address for every temporal step
+  map<int, int> max_addresses; // time->max_address
+  for (auto itr = assignment.begin() ; itr != assignment.end() ; itr++) {
+    const Disposition & disposition = *itr;
+    const Task & task = get_task(tasks, disposition.time_index, disposition.task_index);
+    int address = disposition.address;
+    for (int e = 0 ; e < task.elapse ; e++) {
+      if (max_addresses.find(disposition.time_index + e) == max_addresses.end()) {
+        max_addresses[disposition.time_index + e] = 0;
+      }
+      if (address + task.size > max_addresses[disposition.time_index + e]) {
+        max_addresses[disposition.time_index + e] = address + task.size;
+      }
+    }
+  }
+  // 2) find the max temporal step the tasks last
+  int max_temporal = 0;
+  for (map<int,vector<Task> >::const_iterator itr = tasks.begin() ; itr != tasks.end() ; itr++) {
+    for (int i = 0 ; i < itr->second.size() ; i++) {
+      if (max_temporal < itr->first + itr->second[i].elapse) {
+        max_temporal = itr->first + itr->second[i].elapse;
+      }
+    }
+  }
+  // NOTE: if the key set of max_addresses doesnt cover the full temporal set, there max be some temporal step has no assignment.
+  int min_address = (max_addresses.size() < max_temporal)?0:min_element(max_addresses.begin(), max_addresses.end(),
+                                                                        [](const pair<int, int> & a, const pair<int, int> & b) {
+                                                                          return a.second < b.second;
+                                                                        })->second;
+  int max_address = max_element(max_addresses.begin(), max_addresses.end(),
+                                [](const pair<int, int> & a, const pair<int, int> & b) {
+                                  return a.second < b.second;
+                                })->second;
+  return make_tuple(min_address, max_address);
+}
+
 Disposition Allocator::assign(const Assignment & assignment, const map<int, vector<Task> > & tasks, task_id tid) {
   // place current task according to existing assigned tasks
   const Task & task = get_task(tasks, get<0>(tid), get<1>(tid));
@@ -70,4 +107,20 @@ Disposition Allocator::assign(const Assignment & assignment, const map<int, vect
 }
 
 Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
+  // 1) make the root node
+  remaining_tasks tasks_to_assign;
+  for (const::map<int, vector<Task> >::const_iterator itr = tasks.begin() ; itr != tasks.end() ; itr++) {
+    for (int i = 0; i < itr->second.size() ; i++) {
+      tasks_to_assign.push_back(make_tuple(itr->first, i));
+    }
+  }
+  if (0 == tasks_to_assign.size()) {
+    throw logic_error("at leat one task in the tasks container!");
+  }
+  Queue solutions;
+  solutions.push(make_tuple(Assignment, tasks_to_assign));
+  // 2) start searching
+  while(solutions.size()) {
+    // TODO:
+  }
 }
