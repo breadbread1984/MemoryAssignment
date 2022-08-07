@@ -1,8 +1,12 @@
-#ifndef MEMORY_HPP
-#define MEMORY_HPP
+#ifndef ALLOCATOR_HPP
+#define ALLOCATOR_HPP
 
+#include <vector>
+#include <tuple>
 #include <queue>
 #include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/member.hpp>
 
 using namespace std;
 using namespace boost;
@@ -14,6 +18,7 @@ struct Task {
 };
 
 struct Disposition {
+  int index; // index to task
   int address;
   int time;
 };
@@ -30,7 +35,7 @@ using Assignment = multi_index_container<
     >,
     ordered_non_unique<
       tag<IndexedByTime>,
-      member<Disposition, int, &DispositionL::time>
+      member<Disposition, int, &Disposition::time>
     >
   >
 >;
@@ -38,10 +43,12 @@ using Assignment = multi_index_container<
 class Allocator {
   using Queue = queue<Assignment>;
 protected:
-  int cost(const Assignment & cost);
+  int cost(const Assignment & assignment, const vector<Task> & tasks);
+  std::tuple<int, int> bound(const Assignment & assignment, const Task & task);
 public:
   Allocator();
   virtual ~Allocator();
+  Assignment solve(const vector<Task> & tasks);
 };
 
 #endif

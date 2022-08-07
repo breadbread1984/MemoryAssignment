@@ -4,7 +4,7 @@ OBJS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 all: main
 
-main: main.o memory.o
+main: main.o allocator.o
 	$(CXX) $^ $(LIBS) -o ${@}
 
 clean:

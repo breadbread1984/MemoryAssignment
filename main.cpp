@@ -1,18 +1,17 @@
 #include <cstdlib>
 #include <iostream>
-#include <vector>
-#include <tuple>
 #include <boost/random/random_device.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <opencv2/opencv.hpp>
-#include "memory.hpp"
+#include "allocator.hpp"
 
 using namespace std;
 using namespace boost::random;
 using namespace cv;
 
 int main() {
-  Memory memory(8);
+  ::Allocator allocator();
+  /*
   vector<vector<tuple<int,int> > > tasks{
     {make_tuple(1,2),make_tuple(1,1),make_tuple(1,3)},
     {make_tuple(2,1),make_tuple(1,2),make_tuple(1,5)},
@@ -21,7 +20,6 @@ int main() {
     {make_tuple(2,1),make_tuple(1,2)},
     {make_tuple(1,2)}
   };
-  Assignments assignments = memory.assign(tasks);
   // visualization
   random_device rng;
   boost::random::uniform_int_distribution<> dist(0, 255);
@@ -44,5 +42,6 @@ int main() {
   namedWindow("result");
   imshow("result", img);
   waitKey();
+  */
   return EXIT_SUCCESS;
 }
