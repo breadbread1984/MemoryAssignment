@@ -161,8 +161,34 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
                                                int upper_b = get<3>(b);
                                                return upper_a < upper_b;
                                              });
-    // extend the first candidate candidate solution in solutions
+    // extend the first candidate solution in solutions
     solution_candidate solution = solutions.front();
     solutions.pop_front();
-  }
+    Assignment & assignment = get<0>(solution);
+    remaining_tasks & tasks_to_assign = get<1>(solution);
+    for (int i = 0 ; i < tasks_to_assign.size() ; i++) {
+      task_id & tid = tasks_to_assign[i];
+      Disposition disposition = assign(assignment, tasks, tid);
+      Assignment assignment_copy(assignment);
+      assignment_copy.insert(disposition);
+      remaining_tasks tasks_to_assign_copy(tasks_to_assign);
+      tasks_to_assign_copy.erase(tasks_to_assign_copy.begin() + i);
+      if (0 == tasks_to_assign_copy.size()) {
+        // if this is a full assignment of all tasks, compare with the current best solution
+        int c = cost(assignment_copy, tasks);
+        if (c < lowest_cost) {
+          lowest_cost = c;
+          best_solution = assignment_copy;
+        }
+      } else {
+        // if this is not a full assignment of all tasks, put the candidate solution to open list
+        int address_lower, address_upper;
+        std::tie(address_lower, address_upper) = bound(assignment_copy, tasks);
+        int size_lower, size_upper;
+        std::tie(size_lower, size_upper) = heuristic(tasks_to_assign_copy, tasks);
+        solutions.push_back(make_tuple(assignment_copy, tasks_to_assign_copy, address_lower + size_lower, address_upper + size_upper));
+      }
+    } // extend all candidate solutions from this candidate solution
+  } // while the candidate solutions are not fully explored
+  return best_solution;
 }
