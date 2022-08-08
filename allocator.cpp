@@ -109,7 +109,7 @@ Disposition Allocator::assign(const Assignment & assignment, const map<int, vect
 Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
   // 1) make the root node
   remaining_tasks tasks_to_assign;
-  for (const::map<int, vector<Task> >::const_iterator itr = tasks.cbegin() ; itr != tasks.cend() ; itr++) {
+  for (map<int, vector<Task> >::const_iterator itr = tasks.cbegin() ; itr != tasks.cend() ; itr++) {
     for (int i = 0; i < itr->second.size() ; i++) {
       tasks_to_assign.push_back(make_tuple(itr->first, i));
     }
