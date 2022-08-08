@@ -130,6 +130,8 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
   if (0 == tasks_to_assign.size()) {
     throw logic_error("at leat one task in the tasks container!");
   }
+  Assignment best_solution;
+  int lowest_cost = numeric_limits<int>::max();
   Queue solutions;
   Assignment origin;
   int address_lower, address_upper;
@@ -139,13 +141,28 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
   solutions.push_back(make_tuple(origin, tasks_to_assign, address_lower + size_lower, address_upper + size_upper));
   // 2) start searching
   while(solutions.size()) {
-    // remove solutions with lower address higher than others' upper address
-    // TODO: 
+    // find the minimum upper bound
+    auto which_solution = min_element(solutions.begin(), solutions.end(), [](const solution_candidate & a, const solution_candidate & b) {
+                                                                            int upper_a = get<3>(a);
+                                                                            int upper_b = get<3>(b);
+                                                                            return upper_a < upper_b;
+                                                                          });
+    int minimum_upper = get<3>(*which_solution);
+    // remove solutions with lower bound higher than than the minimum upper bound
+    auto remove_from = remove_if(solutions.begin(), solutions.end(), [&](const solution_candidate & a) {
+                                                                       return get<2>(a) > minimum_upper;
+                                                                     });
+    solutions.erase(remove_from, solutions.end());
+    // NOTE: at lease one candidate solution whose minimum upper equals minimum_upper must be in solutions.
+    assert (solutions.size());
     // sort with upper address estimation in ascend order
     sort(solutions.begin(), solutions.end(), [](const solution_candidate & a, const solution_candidate & b) {
                                                int upper_a = get<3>(a);
                                                int upper_b = get<3>(b);
                                                return upper_a < upper_b;
                                              });
+    // extend the first candidate candidate solution in solutions
+    solution_candidate solution = solutions.front();
+    solutions.pop_front();
   }
 }

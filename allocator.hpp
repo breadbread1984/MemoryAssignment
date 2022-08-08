@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <deque>
 #include <tuple>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -44,7 +45,7 @@ class Allocator {
   using task_id = std::tuple<int,int>; // time_index, task_index
   using remaining_tasks = vector<task_id>;
   using solution_candidate = std::tuple<Assignment, remaining_tasks, int, int>; // assignment, task to assign, lower address estimation, higher address estimation
-  using Queue = vector<solution_candidate>;
+  using Queue = deque<solution_candidate>;
 protected:
   inline const Task & get_task(const map<int, vector<Task> > & tasks, int time_index, int task_index);
   inline int temporal_intersect(int left1, int right1, int left2, int right2);
