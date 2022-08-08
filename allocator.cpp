@@ -1,6 +1,10 @@
 #include <stdexcept>
 #include <limits>
 #include <algorithm>
+#ifndef NDEBUG
+#include <iostream>
+#include <iterator>
+#endif
 #include "allocator.hpp"
 
 using namespace std;
@@ -152,6 +156,11 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
     auto remove_from = remove_if(solutions.begin(), solutions.end(), [&](const solution_candidate & a) {
                                                                        return get<2>(a) > minimum_upper;
                                                                      });
+#ifndef NDEBUG
+    if (remove_from != solutions.end()) {
+      cout<<"pruning "<<distance(remove_from, solutions.end())<<" inferier candidate solutions"<<endl;
+    }
+#endif
     solutions.erase(remove_from, solutions.end());
     // NOTE: at lease one candidate solution whose minimum upper equals minimum_upper must be in solutions.
     assert (solutions.size());
@@ -191,4 +200,20 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
     } // extend all candidate solutions from this candidate solution
   } // while the candidate solutions are not fully explored
   return best_solution;
+}
+
+int Allocator::size(const Assignment & assignment, const map<int, vector<Task> > & tasks) {
+  return cost(assignment, tasks);
+}
+
+int Allocator::elapse(const map<int, vector<Task> > & tasks) {
+  int max_temporal = 0;
+  for (map<int,vector<Task> >::const_iterator itr = tasks.cbegin() ; itr != tasks.cend() ; itr++) {
+    for (int i = 0 ; i < itr->second.size() ; i++) {
+      if (max_temporal < itr->first + itr->second[i].elapse) {
+        max_temporal = itr->first + itr->second[i].elapse;
+      }
+    }
+  }
+  return max_temporal;
 }
