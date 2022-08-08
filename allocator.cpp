@@ -139,6 +139,8 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
   solutions.push_back(make_tuple(origin, tasks_to_assign, address_lower + size_lower, address_upper + size_upper));
   // 2) start searching
   while(solutions.size()) {
+    // remove solutions with lower address higher than others' upper address
+    // TODO: 
     // sort with upper address estimation in ascend order
     sort(solutions.begin(), solutions.end(), [](const solution_candidate & a, const solution_candidate & b) {
                                                int upper_a = get<3>(a);
