@@ -79,6 +79,19 @@ std::tuple<int,int> Allocator::bound(const Assignment & assignment, const map<in
   return make_tuple(min_address, max_address);
 }
 
+std::tuple<int,int> Allocator::heuristic(remaining_tasks tids, const map<int, vector<Task> > & tasks) {
+  int total_size = 0;
+  int max_size = 0;
+  for (auto& tid: tids) {
+    const Task & task = get_task(tasks, get<0>(tid), get<1>(tid));
+    total_size += task.size;
+    if (task.size > max_size) {
+      max_size = task.size;
+    }
+  }
+  return make_tuple(max_size, total_size);
+}
+
 Disposition Allocator::assign(const Assignment & assignment, const map<int, vector<Task> > & tasks, task_id tid) {
   // place current task according to existing assigned tasks
   const Task & task = get_task(tasks, get<0>(tid), get<1>(tid));
@@ -118,9 +131,19 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
     throw logic_error("at leat one task in the tasks container!");
   }
   Queue solutions;
-  solutions.push(make_tuple(Assignment(), tasks_to_assign));
+  Assignment origin;
+  int address_lower, address_upper;
+  std::tie(address_lower, address_upper) = bound(origin, tasks);
+  int size_lower, size_upper;
+  std::tie(size_lower, size_upper) = heuristic(tasks_to_assign, tasks);
+  solutions.push_back(make_tuple(origin, tasks_to_assign, address_lower + size_lower, address_upper + size_upper));
   // 2) start searching
   while(solutions.size()) {
-    // TODO:
+    // sort with upper address estimation in ascend order
+    sort(solutions.begin(), solutions.end(), [](const solution_candidate & a, const solution_candidate & b) {
+                                               int upper_a = get<3>(a);
+                                               int upper_b = get<3>(b);
+                                               return upper_a < upper_b;
+                                             });
   }
 }
