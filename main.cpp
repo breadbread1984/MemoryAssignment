@@ -25,16 +25,20 @@ int main() {
   // visualization
   random_device rng;
   boost::random::uniform_int_distribution<> dist(0, 255);
+  map<int, Scalar> pallete;
   Mat img = Mat::zeros(memory_size * 30, elapse * 40, CV_8UC3);
   Scalar border(128,128,128);
   for (auto & disposition: solution) {
     Task & task = tasks[disposition.time_index][disposition.task_index];
     int address = disposition.address;
-    Scalar color(dist(rng), dist(rng), dist(rng));
+    if (pallete.find(disposition.time_index) == pallete.end()) {
+      pallete[disposition.time_index] = Scalar(dist(rng), dist(rng), dist(rng));
+    }
     int x = disposition.time_index * 40;
     int y = address * 30;
     int w = task.elapse * 40;
     int h = task.size * 30;
+    Scalar color = pallete[disposition.time_index];
     rectangle(img, Point(x,y), Point(x + w, y + h), color, -1);
     rectangle(img, Point(x,y), Point(x + w, y + h), border, 1);
     cout<<x<<","<<y<<","<<x+w<<","<<y+h<<endl;
