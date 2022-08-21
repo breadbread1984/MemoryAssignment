@@ -93,7 +93,7 @@ Disposition Allocator::assign(const Assignment & assignment, const map<int, vect
       int left2 = get<0>(tid);
       int right2 = get<0>(tid) + task2.elapse;
       int down2 = address;
-      int up2 = address + task2.elapse;
+      int up2 = address + task2.size;
       int area = intersect(left1, right1, up1, down1, left2, right2, up2, down2);
       if (area) {
         overlap = true;
