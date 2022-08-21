@@ -115,3 +115,19 @@ Assignment Allocator::solve(const map<int, vector<Task> > & tasks) {
   }
   return solution;
 }
+
+int Allocator::size(const Assignment & assignment, const map<int, vector<Task> > & tasks) {
+  return cost(assignment, tasks);
+}
+
+int Allocator::elapse(const map<int, vector<Task> > & tasks) {
+  int max_temporal = 0;
+  for (map<int,vector<Task> >::const_iterator itr = tasks.cbegin() ; itr != tasks.cend() ; itr++) {
+    for (int i = 0 ; i < itr->second.size() ; i++) {
+      if (max_temporal < itr->first + itr->second[i].elapse) {
+        max_temporal = itr->first + itr->second[i].elapse;
+      }
+    }
+  }
+  return max_temporal;
+}

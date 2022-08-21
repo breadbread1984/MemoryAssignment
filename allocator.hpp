@@ -52,6 +52,8 @@ public:
   Allocator();
   virtual ~Allocator();
   Assignment solve(const map<int, vector<Task> > & tasks);
+  int size(const Assignment & assignment, const map<int, vector<Task> > & tasks);
+  int elapse(const map<int, vector<Task> > & tasks);
 };
 
 #endif
