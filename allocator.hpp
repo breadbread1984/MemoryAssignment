@@ -47,6 +47,7 @@ protected:
   inline const Task & get_task(const map<int, vector<Task> > & tasks, int time_index, int task_index);
   inline int temporal_intersect(int left1, int right1, int left2, int right2);
   inline int intersect(int left1, int right1, int up1, int down1, int left2, int right2, int up2, int down2);
+  int cost(const Assignment & assignment, const map<int, vector<Task> > & tasks);
   Disposition assign(const Assignment & assignment, const map<int, vector<Task> > & tasks, task_id tid);
 public:
   Allocator();

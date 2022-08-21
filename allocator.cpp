@@ -38,21 +38,34 @@ int Allocator::intersect(int left1, int right1, int up1, int down1, int left2, i
   return width * height;
 }
 
+int Allocator::cost(const Assignment & assignment, const map<int, vector<Task> > & tasks) {
+  int max_value = 0;
+  for (auto itr = assignment.begin() ; itr != assignment.end() ; itr++) {
+    const Disposition & disposition = *itr;
+    const Task & task = get_task(tasks, disposition.time_index, disposition.task_index);
+    int address = disposition.address;
+    if (address + task.size > max_value) {
+      max_value = address + task.size;
+    }
+  }
+  return max_value;
+}
+
 Disposition Allocator::assign(const Assignment & assignment, const map<int, vector<Task> > & tasks, task_id tid) {
   const Task & task = get_task(tasks, get<0>(tid), get<1>(tid));
   // get temporal overlapped tasks
   vector<Disposition> temporal_overlapped_dispositions;
   for (auto itr = assignment.begin() ; itr != assignment.end() ; itr++) {
-    const Disposition & dispsotion1 = *itr;
+    const Disposition & disposition1 = *itr;
     const Task & task1 = get_task(tasks, disposition1.time_index, disposition1.task_index);
     int left1 = disposition1.time_index;
     int right1 = disposition1.time_index + task1.elapse;
-    const Task & task2 = task
+    const Task & task2 = task;
     int left2 = get<0>(tid);
     int right2 = get<0>(tid) + task2.elapse;
     int intersect = temporal_intersect(left1, right1, left2, right2);
     if (intersect) {
-      temporal_overlapped_dispositions.push_back(disposition1)
+      temporal_overlapped_dispositions.push_back(disposition1);
     }
   }
   // is no temporal overlapped tasks, assign current task to address 0
@@ -74,15 +87,15 @@ Disposition Allocator::assign(const Assignment & assignment, const map<int, vect
       const Task & task1 = get_task(tasks, d.time_index, d.task_index);
       int left1 = d.time_index;
       int right1 = d.time_index + task1.elapse;
-      int down = d.address;
-      int up = d.address + task1.size;
+      int down1 = d.address;
+      int up1 = d.address + task1.size;
       const Task & task2 = task;
       int left2 = get<0>(tid);
       int right2 = get<0>(tid) + task2.elapse;
-      int down = address;
-      int up = address + task2.elapse;
-      int intersect = intersect(left1, right1, up1, down1, left2, right2, up2, down2);
-      if (intersect) {
+      int down2 = address;
+      int up2 = address + task2.elapse;
+      int area = intersect(left1, right1, up1, down1, left2, right2, up2, down2);
+      if (area) {
         overlap = true;
         break;
       }
