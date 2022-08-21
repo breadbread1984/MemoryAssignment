@@ -1,50 +1,47 @@
 #include <cstdlib>
 #include <iostream>
-#include <vector>
-#include <tuple>
 #include <boost/random/random_device.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <opencv2/opencv.hpp>
-#include "memory.hpp"
+#include "allocator.hpp"
 
 using namespace std;
 using namespace boost::random;
 using namespace cv;
 
-int memory_slots = 8;
-
 int main() {
-  Memory memory(memory_slots);
-  vector<vector<tuple<int,int> > > tasks{
-    {make_tuple(1,2),make_tuple(1,1),make_tuple(1,3)},
-    {make_tuple(2,1),make_tuple(1,2),make_tuple(1,5)},
-    {make_tuple(2,1),make_tuple(1,4),make_tuple(1,5)},
-    {make_tuple(1,4),make_tuple(1,2)},
-    {make_tuple(2,1),make_tuple(1,2)},
-    {make_tuple(1,2)}
+  ::Allocator allocator;
+  map<int, vector<Task> > tasks{
+    {0,{Task{1,2},Task{1,1},Task{1,3}}},
+    {1,{Task{2,1},Task{1,2},Task{1,5}}},
+    {2,{Task{2,1},Task{1,4},Task{1,5}}},
+    {3,{Task{1,4},Task{1,2}}},
+    {4,{Task{2,1},Task{1,2}}},
+    {5,{Task{1,2}}}
   };
-  Assignments assignments = memory.assign(tasks);
+  Assignment solution = allocator.solve(tasks);
+  int memory_size = allocator.size(solution, tasks);
+  int elapse = allocator.elapse(tasks);
   // visualization
   random_device rng;
   boost::random::uniform_int_distribution<> dist(0, 255);
-  Mat img = Mat::zeros(memory_slots * 30, (tasks.size() + 4) * 40, CV_8UC3);
-  auto & detail1 = assignments.get();
+  Mat img = Mat::zeros(memory_size * 30, elapse * 40, CV_8UC3);
   Scalar border(128,128,128);
-  for (int t = 0 ; t < detail1.size() ; t++) {
-    auto & detail2 = detail1[t].get();
+  for (auto & disposition: solution) {
+    Task & task = tasks[disposition.time_index][disposition.task_index];
+    int address = disposition.address;
     Scalar color(dist(rng), dist(rng), dist(rng));
-    int x = t * 40;
-    for (map<int, tuple<int,int> >::iterator itr = detail2.begin() ; itr != detail2.end() ; itr++) {
-      int y = itr->first * 30;
-      int h = get<0>(itr->second) * 30;
-      int w = get<1>(itr->second) * 40;
-      rectangle(img, Point(x,y), Point(x + w, y + h), color, -1);
-      rectangle(img, Point(x,y), Point(x + w, y + h), border, 1);
-      cout<<x<<","<<y<<","<<x+w<<","<<y+h<<endl;
-    }
+    int x = disposition.time_index * 40;
+    int y = address * 30;
+    int w = task.elapse * 40;
+    int h = task.size * 30;
+    rectangle(img, Point(x,y), Point(x + w, y + h), color, -1);
+    rectangle(img, Point(x,y), Point(x + w, y + h), border, 1);
+    cout<<x<<","<<y<<","<<x+w<<","<<y+h<<endl;
   }
   namedWindow("result");
   imshow("result", img);
   waitKey();
+
   return EXIT_SUCCESS;
 }
